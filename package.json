@@ -1,0 +1,29 @@
+{
+    "name": "wp-dir-toc",
+    "version": "0.1.0",
+    "description": "Directory table of content index generator.",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "prepublishOnly": "npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/siriusmart/wp-dir-toc.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "AGPL-3.0-only",
+    "type": "commonjs",
+    "bugs": {
+        "url": "https://github.com/siriusmart/wp-dir-toc/issues"
+    },
+    "homepage": "https://github.com/siriusmart/wp-dir-toc#readme",
+    "devDependencies": {
+        "@types/node": "^24.4.0"
+    },
+    "dependencies": {
+        "webpan": "*"
+    }
+}
