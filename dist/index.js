@@ -1,16 +1,12 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const path_1 = __importDefault(require("path"));
-const webpan = require("webpan");
-class DirTocProcessor extends webpan.Processor {
+import assert from "assert";
+import path from "path";
+import Processor from "webpan/dist/types/processor.js";
+export default class DirTocProcessor extends Processor {
     async build(content) {
         if (content !== "dir")
-            throw new Error("Bad rule: wp-dir-toc can only be used on directories.");
-        let entries = {};
-        for (const [fileName, fileProcs] of this.files({ include: path_1.default.join(this.filePath(), "/**") }).entries()) {
+            throw new Error("dir-toc can only be used on a directory");
+        let entries = new Map();
+        for (const [fileName, fileProcs] of this.files({ include: path.join(this.filePath(), "/**") }).entries()) {
             let unifiedProcs = fileProcs.procs().get("unified");
             if (unifiedProcs === undefined)
                 continue;
@@ -18,20 +14,44 @@ class DirTocProcessor extends webpan.Processor {
                 let res = await proc.getResult();
                 for (const plugin of res.result.pluginResults) {
                     if (plugin.pluginName === "remark-frontmatter") {
-                        entries[fileName] = {
+                        entries.set(fileName.split('/').filter(s => s.length), {
+                            type: "file",
+                            source: fileName,
                             meta: plugin.result,
                             output: res.files.values().next().value ?? null
-                        };
+                        });
                         break outer;
                     }
                 }
             }
         }
+        let directories = {};
+        for (const path of entries.keys()) {
+            for (let i = 0; i < path.length; i++) {
+                let dirPath = path.slice(0, i).join("/");
+                if (directories[dirPath] === undefined)
+                    directories[dirPath] = {
+                        type: "dir",
+                        source: dirPath,
+                        children: []
+                    };
+                if (i !== 0) {
+                    let parentDirPath = path.slice(0, i - 1).join("/");
+                    assert(directories[parentDirPath]?.type === "dir");
+                    directories[parentDirPath].children.push(directories[dirPath]);
+                }
+            }
+        }
+        for (const [path, file] of entries.entries()) {
+            let dirPath = path.slice(0, -1).join("/");
+            assert(directories[dirPath]?.type === "dir");
+            directories[dirPath].children.push(file);
+        }
+        let result = directories[""];
         return {
-            relative: new Map([[path_1.default.join(this.filePath(), "index.json"), { buffer: JSON.stringify(entries), priority: this.settings().priority ?? 0 }]]),
-            result: {}
+            relative: new Map([[path.join(this.filePath(), "index.json"), { buffer: JSON.stringify(result), priority: this.settings().priority ?? 0 }]]),
+            result
         };
     }
 }
-exports.default = DirTocProcessor;
 //# sourceMappingURL=index.js.map
