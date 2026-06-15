@@ -4,12 +4,13 @@ import Processor from "webpan/dist/types/processor.js";
 import { ProcessorOutputRaw } from "webpan/dist/types/processorStates.js";
 
 type TocEntry = DirEntry | FileEntry;
+type TocEntryOrdered = DirEntryOrdered | FileEntry;
 
 interface DirEntry {
     type: "dir",
     meta?: any,
     source: string,
-    children: TocEntry[],
+    children: Set<TocEntry>,
 }
 
 interface FileEntry {
@@ -17,6 +18,13 @@ interface FileEntry {
     meta: any,
     source: string,
     output: string | null
+}
+
+interface DirEntryOrdered {
+    type: "dir",
+    meta?: any,
+    source: string,
+    children: TocEntryOrdered[],
 }
 
 export default class DirTocProcessor extends Processor {
@@ -57,13 +65,13 @@ export default class DirTocProcessor extends Processor {
                     directories[dirPath] = {
                         type: "dir",
                         source: dirPath,
-                        children: []
+                        children: new Set()
                     }
 
                 if (i !== 0) {
                     let parentDirPath = path.slice(0, i - 1).join("/");
                     assert(directories[parentDirPath]?.type === "dir")
-                    directories[parentDirPath].children.push(directories[dirPath])
+                    directories[parentDirPath].children.add(directories[dirPath])
                 }
             }
         }
@@ -71,14 +79,35 @@ export default class DirTocProcessor extends Processor {
         for (const [path, file] of entries.entries()) {
             let dirPath = path.slice(0, -1).join("/");
             assert(directories[dirPath]?.type === "dir")
-            directories[dirPath].children.push(file)
+            directories[dirPath].children.add(file)
         }
 
         let result = directories[""]
 
+        function asOrdered(entry: TocEntry): TocEntryOrdered {
+            switch (entry.type) {
+                case "dir":
+                    return {
+                        type: "dir",
+                        meta: entry.meta,
+                        source: entry.source,
+                        children: Array.from(entry.children).map(asOrdered)
+                    }
+                case "file":
+                    return {
+                        type: "file",
+                        meta: entry.meta,
+                        source: entry.source,
+                        output: entry.output
+                    }
+            }
+        }
+
+        let ordered = result === undefined ? undefined : asOrdered(result)
+
         return {
-            relative: new Map([[path.join(this.filePath(), "index.json"), { buffer: JSON.stringify(result), priority: this.settings().priority ?? 0 }]]),
-            result
+            relative: new Map([[path.join(this.filePath(), "dir-toc.json"), { buffer: JSON.stringify(ordered), priority: this.settings().priority ?? 0 }]]),
+            result: ordered
         }
     }
 }

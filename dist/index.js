@@ -33,24 +33,43 @@ export default class DirTocProcessor extends Processor {
                     directories[dirPath] = {
                         type: "dir",
                         source: dirPath,
-                        children: []
+                        children: new Set()
                     };
                 if (i !== 0) {
                     let parentDirPath = path.slice(0, i - 1).join("/");
                     assert(directories[parentDirPath]?.type === "dir");
-                    directories[parentDirPath].children.push(directories[dirPath]);
+                    directories[parentDirPath].children.add(directories[dirPath]);
                 }
             }
         }
         for (const [path, file] of entries.entries()) {
             let dirPath = path.slice(0, -1).join("/");
             assert(directories[dirPath]?.type === "dir");
-            directories[dirPath].children.push(file);
+            directories[dirPath].children.add(file);
         }
         let result = directories[""];
+        function asOrdered(entry) {
+            switch (entry.type) {
+                case "dir":
+                    return {
+                        type: "dir",
+                        meta: entry.meta,
+                        source: entry.source,
+                        children: Array.from(entry.children).map(asOrdered)
+                    };
+                case "file":
+                    return {
+                        type: "file",
+                        meta: entry.meta,
+                        source: entry.source,
+                        output: entry.output
+                    };
+            }
+        }
+        let ordered = result === undefined ? undefined : asOrdered(result);
         return {
-            relative: new Map([[path.join(this.filePath(), "index.json"), { buffer: JSON.stringify(result), priority: this.settings().priority ?? 0 }]]),
-            result
+            relative: new Map([[path.join(this.filePath(), "dir-toc.json"), { buffer: JSON.stringify(ordered), priority: this.settings().priority ?? 0 }]]),
+            result: ordered
         };
     }
 }
