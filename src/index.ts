@@ -3,10 +3,10 @@ import path from "path";
 import Processor from "webpan/dist/types/processor.js";
 import { ProcessorOutputRaw } from "webpan/dist/types/processorStates.js";
 
-type TocEntry = DirEntry | FileEntry;
-type TocEntryOrdered = DirEntryOrdered | FileEntry;
+export type TocEntry = DirEntry | FileEntry;
+export type TocEntryOrdered = DirEntryOrdered | FileEntry;
 
-interface DirEntry {
+export interface DirEntry {
     type: "dir",
     meta?: any,
     sourceAbs: string,
@@ -14,7 +14,7 @@ interface DirEntry {
     children: Set<TocEntry>,
 }
 
-interface FileEntry {
+export interface FileEntry {
     type: "file",
     meta: any,
     sourceAbs: string,
@@ -23,7 +23,7 @@ interface FileEntry {
     outputRel: string | null
 }
 
-interface DirEntryOrdered {
+export interface DirEntryOrdered {
     type: "dir",
     meta?: any,
     sourceAbs: string,
