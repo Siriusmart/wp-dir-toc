@@ -6,6 +6,7 @@ export default class DirTocProcessor extends Processor {
         if (content !== "dir")
             throw new Error("dir-toc can only be used on a directory");
         let entries = new Map();
+        let prefixLength = this.filePath().length;
         for (const [fileName, fileProcs] of this.files({ include: path.join(this.filePath(), "/**") }).entries()) {
             let unifiedProcs = fileProcs.procs().get("unified");
             if (unifiedProcs === undefined)
@@ -16,9 +17,11 @@ export default class DirTocProcessor extends Processor {
                     if (plugin.pluginName === "remark-frontmatter") {
                         entries.set(fileName.split('/').filter(s => s.length), {
                             type: "file",
-                            source: fileName,
+                            sourceAbs: fileName,
+                            sourceRel: fileName.slice(prefixLength),
                             meta: plugin.result,
-                            output: res.files.values().next().value ?? null
+                            outputAbs: res.files.values().next().value ?? null,
+                            outputRel: res.files.values().next().value?.slice(prefixLength) ?? null
                         });
                         break outer;
                     }
@@ -29,12 +32,15 @@ export default class DirTocProcessor extends Processor {
         for (const path of entries.keys()) {
             for (let i = 0; i < path.length; i++) {
                 let dirPath = path.slice(0, i).join("/");
-                if (directories[dirPath] === undefined)
+                if (directories[dirPath] === undefined) {
+                    let sourceAbs = ["", ...path.slice(0, i)].join("/") + "/";
                     directories[dirPath] = {
                         type: "dir",
-                        source: dirPath,
+                        sourceAbs,
+                        sourceRel: sourceAbs.slice(prefixLength),
                         children: new Set()
                     };
+                }
                 if (i !== 0) {
                     let parentDirPath = path.slice(0, i - 1).join("/");
                     assert(directories[parentDirPath]?.type === "dir");
@@ -47,23 +53,19 @@ export default class DirTocProcessor extends Processor {
             assert(directories[dirPath]?.type === "dir");
             directories[dirPath].children.add(file);
         }
-        let result = directories[""];
+        let result = directories[this.filePath().slice(1, -1)];
         function asOrdered(entry) {
             switch (entry.type) {
                 case "dir":
                     return {
                         type: "dir",
                         meta: entry.meta,
-                        source: entry.source,
+                        sourceAbs: entry.sourceAbs,
+                        sourceRel: entry.sourceRel,
                         children: Array.from(entry.children).map(asOrdered)
                     };
                 case "file":
-                    return {
-                        type: "file",
-                        meta: entry.meta,
-                        source: entry.source,
-                        output: entry.output
-                    };
+                    return entry;
             }
         }
         let ordered = result === undefined ? undefined : asOrdered(result);
