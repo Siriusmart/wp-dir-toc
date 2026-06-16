@@ -109,7 +109,9 @@ export default class DirTocProcessor extends Processor {
             }
         }
 
-        let ordered = result === undefined ? undefined : asOrdered(result)
+        let ordered: TocEntryOrdered = result === undefined ?
+            { type: "dir", sourceRel: "/", sourceAbs: this.filePath({ absolute: true }), children: [] } :
+            asOrdered(result)
 
         return {
             relative: new Map([[path.join(this.filePath(), "dir-toc.json"), { buffer: JSON.stringify(ordered), priority: this.settings().priority ?? 0 }]]),
