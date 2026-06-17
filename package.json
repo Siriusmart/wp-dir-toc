@@ -1,6 +1,6 @@
 {
     "name": "wp-dir-toc",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "description": "Directory table of content index generator.",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

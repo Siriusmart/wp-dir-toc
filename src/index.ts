@@ -1,6 +1,7 @@
 import assert from "assert";
 import path from "path";
 import Processor from "webpan/dist/types/processor.js";
+import NewFiles from "webpan/dist/types/newfiles.js";
 import { ProcessorOutputRaw } from "webpan/dist/types/processorStates.js";
 
 export type TocEntry = DirEntry | FileEntry;
@@ -109,13 +110,15 @@ export default class DirTocProcessor extends Processor {
             }
         }
 
-        let ordered: TocEntryOrdered = result === undefined ?
-            { type: "dir", sourceRel: "/", sourceAbs: this.filePath({ absolute: true }), children: [] } :
-            asOrdered(result)
+        let ordered = result === undefined ? undefined : asOrdered(result)
 
         return {
             relative: new Map([[path.join(this.filePath(), "dir-toc.json"), { buffer: JSON.stringify(ordered), priority: this.settings().priority ?? 0 }]]),
             result: ordered
         }
+    }
+
+    shouldRebuild(newFiles: NewFiles): boolean {
+        return newFiles.files({ include: path.join(this.filePath(), "/**/*.md") }).size !== 0;
     }
 }

@@ -68,13 +68,14 @@ export default class DirTocProcessor extends Processor {
                     return entry;
             }
         }
-        let ordered = result === undefined ?
-            { type: "dir", sourceRel: "/", sourceAbs: this.filePath({ absolute: true }), children: [] } :
-            asOrdered(result);
+        let ordered = result === undefined ? undefined : asOrdered(result);
         return {
             relative: new Map([[path.join(this.filePath(), "dir-toc.json"), { buffer: JSON.stringify(ordered), priority: this.settings().priority ?? 0 }]]),
             result: ordered
         };
+    }
+    shouldRebuild(newFiles) {
+        return newFiles.files({ include: path.join(this.filePath(), "/**/*.md") }).size !== 0;
     }
 }
 //# sourceMappingURL=index.js.map
