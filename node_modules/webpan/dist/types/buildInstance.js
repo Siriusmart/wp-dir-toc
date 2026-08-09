@@ -183,7 +183,7 @@ class BuildInstance {
         switch (buildCycleState) {
             case "readonly":
                 this.fsDiff.clear();
-                this.fsContent.clear();
+                // this.fsContent.clear();
                 break;
             default: {
             }

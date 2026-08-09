@@ -23,8 +23,13 @@ async function createProjectManifest(
     wproject.format ??= {};
     wproject.cmd ??= {};
     wproject.cmd.build ??= {};
+    wproject.system ??= {};
+    wproject.system.packageManager ??= "npm";
 
     return {
+        system: {
+            packageManager: wproject.system.packageManager
+        },
         format: {
             tabSpaces:
                 (yargs.tabSpaces as number) ?? wproject.format.tabSpaces ?? 4,

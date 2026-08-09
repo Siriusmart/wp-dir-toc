@@ -1,6 +1,6 @@
 import assert from "assert";
 import path from "path";
-import Processor from "webpan/dist/types/processor.js";
+import Processor, { FileNamedProcOne } from "webpan/dist/types/processor.js";
 import NewFiles from "webpan/dist/types/newfiles.js";
 import { ProcessorOutputRaw } from "webpan/dist/types/processorStates.js";
 
@@ -9,7 +9,6 @@ export type TocEntryOrdered = DirEntryOrdered | FileEntry;
 
 export interface DirEntry {
     type: "dir",
-    meta?: any,
     sourceAbs: string,
     sourceRel: string,
     children: Set<TocEntry>,
@@ -22,6 +21,7 @@ export interface FileEntry {
     sourceRel: string,
     outputAbs: string | null,
     outputRel: string | null
+    frontMatter?: Record<string, any>
 }
 
 export interface DirEntryOrdered {
@@ -56,7 +56,8 @@ export default class DirTocProcessor extends Processor {
                             sourceRel: fileName.slice(prefixLength),
                             meta: plugin.result,
                             outputAbs: res.files.values().next().value ?? null,
-                            outputRel: res.files.values().next().value?.slice(prefixLength) ?? null
+                            outputRel: res.files.values().next().value?.slice(prefixLength) ?? null,
+                            ...plugin.result === undefined ? {} : { frontMatter: plugin.result }
                         })
                         break outer;
                     }
@@ -95,22 +96,33 @@ export default class DirTocProcessor extends Processor {
 
         let result = directories[this.filePath().slice(1, -1)]
 
-        function asOrdered(entry: TocEntry): TocEntryOrdered {
+        const asOrdered = async (entry: TocEntry): Promise<TocEntryOrdered> => {
             switch (entry.type) {
                 case "dir":
+                    const tocYamlPath = path.join("/", entry.sourceRel, "toc.yml")
+                    const tocYaml = this.files({ include: tocYamlPath }).get(tocYamlPath)?.procs({ include: "yaml-parse" }).get("yaml-parse")?.values().next().value as FileNamedProcOne | undefined;
+                    const tocYamlContent = await tocYaml?.getResult();
+                    const ordering = new Map((tocYamlContent?.result?.order as string[] ?? []).map((value, i) => [value, i]));
                     return {
                         type: "dir",
-                        meta: entry.meta,
+                        meta: tocYamlContent?.result,
                         sourceAbs: entry.sourceAbs,
                         sourceRel: entry.sourceRel,
-                        children: Array.from(entry.children).map(asOrdered)
+                        children: (await Promise.all(Array.from(entry.children).map(asOrdered))).sort((a, b) => {
+                            const aBase = path.basename(a.sourceRel);
+                            const bBase = path.basename(b.sourceRel);
+                            const aOrder = ordering.get(aBase) ?? Number.MAX_SAFE_INTEGER;
+                            const bOrder = ordering.get(bBase) ?? Number.MAX_SAFE_INTEGER;
+
+                            return aOrder === bOrder ? aBase.localeCompare(bBase) : aOrder - bOrder;
+                        }),
                     }
                 case "file":
                     return entry
             }
         }
 
-        let ordered = result === undefined ? undefined : asOrdered(result)
+        let ordered = result === undefined ? undefined : await asOrdered(result)
 
         return {
             relative: new Map([[path.join(this.filePath(), "dir-toc.json"), { buffer: JSON.stringify(ordered), priority: this.settings().priority ?? 0 }]]),
@@ -119,6 +131,6 @@ export default class DirTocProcessor extends Processor {
     }
 
     shouldRebuild(newFiles: NewFiles): boolean {
-        return newFiles.files({ include: path.join(this.filePath(), "/**/*.md") }).size !== 0;
+        return newFiles.files({ include: path.join(this.filePath(), "/**/*.md") }).size !== 0 || newFiles.files({ include: path.join(this.filePath(), "/**/toc.yml") }).size !== 0
     }
 }

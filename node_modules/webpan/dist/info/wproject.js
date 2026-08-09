@@ -16,7 +16,12 @@ async function createProjectManifest(root, yargs) {
     wproject.format ??= {};
     wproject.cmd ??= {};
     wproject.cmd.build ??= {};
+    wproject.system ??= {};
+    wproject.system.packageManager ??= "npm";
     return {
+        system: {
+            packageManager: wproject.system.packageManager
+        },
         format: {
             tabSpaces: yargs.tabSpaces ?? wproject.format.tabSpaces ?? 4,
             buildInfo: yargs.formatbuildinfo ?? wproject.format.buildInfo ?? false,

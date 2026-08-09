@@ -21,7 +21,8 @@ export default class DirTocProcessor extends Processor {
                             sourceRel: fileName.slice(prefixLength),
                             meta: plugin.result,
                             outputAbs: res.files.values().next().value ?? null,
-                            outputRel: res.files.values().next().value?.slice(prefixLength) ?? null
+                            outputRel: res.files.values().next().value?.slice(prefixLength) ?? null,
+                            ...plugin.result === undefined ? {} : { frontMatter: plugin.result }
                         });
                         break outer;
                     }
@@ -54,28 +55,38 @@ export default class DirTocProcessor extends Processor {
             directories[dirPath].children.add(file);
         }
         let result = directories[this.filePath().slice(1, -1)];
-        function asOrdered(entry) {
+        const asOrdered = async (entry) => {
             switch (entry.type) {
                 case "dir":
+                    const tocYamlPath = path.join("/", entry.sourceRel, "toc.yml");
+                    const tocYaml = this.files({ include: tocYamlPath }).get(tocYamlPath)?.procs({ include: "yaml-parse" }).get("yaml-parse")?.values().next().value;
+                    const tocYamlContent = await tocYaml?.getResult();
+                    const ordering = new Map((tocYamlContent?.result?.order ?? []).map((value, i) => [value, i]));
                     return {
                         type: "dir",
-                        meta: entry.meta,
+                        meta: tocYamlContent?.result,
                         sourceAbs: entry.sourceAbs,
                         sourceRel: entry.sourceRel,
-                        children: Array.from(entry.children).map(asOrdered)
+                        children: (await Promise.all(Array.from(entry.children).map(asOrdered))).sort((a, b) => {
+                            const aBase = path.basename(a.sourceRel);
+                            const bBase = path.basename(b.sourceRel);
+                            const aOrder = ordering.get(aBase) ?? Number.MAX_SAFE_INTEGER;
+                            const bOrder = ordering.get(bBase) ?? Number.MAX_SAFE_INTEGER;
+                            return aOrder === bOrder ? aBase.localeCompare(bBase) : aOrder - bOrder;
+                        }),
                     };
                 case "file":
                     return entry;
             }
-        }
-        let ordered = result === undefined ? undefined : asOrdered(result);
+        };
+        let ordered = result === undefined ? undefined : await asOrdered(result);
         return {
             relative: new Map([[path.join(this.filePath(), "dir-toc.json"), { buffer: JSON.stringify(ordered), priority: this.settings().priority ?? 0 }]]),
             result: ordered
         };
     }
     shouldRebuild(newFiles) {
-        return newFiles.files({ include: path.join(this.filePath(), "/**/*.md") }).size !== 0;
+        return newFiles.files({ include: path.join(this.filePath(), "/**/*.md") }).size !== 0 || newFiles.files({ include: path.join(this.filePath(), "/**/toc.yml") }).size !== 0;
     }
 }
 //# sourceMappingURL=index.js.map

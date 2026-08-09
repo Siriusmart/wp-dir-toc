@@ -63,7 +63,11 @@ async function cmdBuild(args: yargs.Arguments): Promise<void> {
     );
 
     await fs.mkdir(path.join(root, "build"), { recursive: true });
+
+    let start = Date.now();
+    console.log("□ Build started")
     await buildDiff(unwrappedBuildInfo.buildInstance, srcContents, hashedDiff, hashedEntries);
+    console.log(`■ Build completed in ${((Date.now() - start) / 1000).toFixed(2)}s`)
 }
 
 export default cmdBuild;

@@ -2,26 +2,28 @@ import crypto from "crypto";
 
 import type * as fsEntries from "../types/fsEntries.js";
 
+export function calcHash(entry: ["file", Buffer] | ["dir"]): string | null {
+    switch (entry[0]) {
+        case "file": {
+            let hash = crypto
+                .createHmac("md5", "")
+                .update(entry[1])
+                .digest("hex");
+
+            return hash
+        }
+        case "dir": {
+            return null
+        }
+    }
+}
+
 function calcHashedEntries(
     fsEntries: fsEntries.FsContentEntries
 ): fsEntries.HashedEntries {
     let hashedEntries: fsEntries.HashedEntries = new Map();
     for (const [childPath, fsContent] of fsEntries.entries()) {
-        switch (fsContent.content[0]) {
-            case "file": {
-                let hash = crypto
-                    .createHmac("md5", "")
-                    .update(fsContent.content[1])
-                    .digest("hex");
-
-                hashedEntries.set(childPath, hash);
-
-                break;
-            }
-            case "dir": {
-                hashedEntries.set(childPath, null);
-            }
-        }
+        hashedEntries.set(childPath, calcHash(fsContent.content));
     }
 
     return hashedEntries;

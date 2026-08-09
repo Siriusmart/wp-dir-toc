@@ -1,20 +1,22 @@
 import crypto from "crypto";
+export function calcHash(entry) {
+    switch (entry[0]) {
+        case "file": {
+            let hash = crypto
+                .createHmac("md5", "")
+                .update(entry[1])
+                .digest("hex");
+            return hash;
+        }
+        case "dir": {
+            return null;
+        }
+    }
+}
 function calcHashedEntries(fsEntries) {
     let hashedEntries = new Map();
     for (const [childPath, fsContent] of fsEntries.entries()) {
-        switch (fsContent.content[0]) {
-            case "file": {
-                let hash = crypto
-                    .createHmac("md5", "")
-                    .update(fsContent.content[1])
-                    .digest("hex");
-                hashedEntries.set(childPath, hash);
-                break;
-            }
-            case "dir": {
-                hashedEntries.set(childPath, null);
-            }
-        }
+        hashedEntries.set(childPath, calcHash(fsContent.content));
     }
     return hashedEntries;
 }

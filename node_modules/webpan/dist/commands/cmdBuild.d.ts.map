@@ -1,1 +1,1 @@
-{"version":3,"file":"cmdBuild.d.ts","sourceRoot":"","sources":["../../src/commands/cmdBuild.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,KAAK,KAAK,MAAM,OAAO,CAAC;AAgBpC,iBAAe,QAAQ,CAAC,IAAI,EAAE,KAAK,CAAC,SAAS,GAAG,OAAO,CAAC,IAAI,CAAC,CAkD5D;AAED,eAAe,QAAQ,CAAC"}
+{"version":3,"file":"cmdBuild.d.ts","sourceRoot":"","sources":["../../src/commands/cmdBuild.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,KAAK,KAAK,MAAM,OAAO,CAAC;AAgBpC,iBAAe,QAAQ,CAAC,IAAI,EAAE,KAAK,CAAC,SAAS,GAAG,OAAO,CAAC,IAAI,CAAC,CAsD5D;AAED,eAAe,QAAQ,CAAC"}

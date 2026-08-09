@@ -27,11 +27,15 @@ async function buildDiffInternal(buildInstance, fsContent, hashedEntries, fsDiff
                     .get(filePath)
                     ?.values()
                     .forEach((handles) => handles.forEach((handle) => {
+                    /*
                     if (diffType === "changed") {
-                        const content = fsContent.get(filePath)?.content;
+                        const content =
+                            fsContent.get(filePath)?.content;
+
                         assert(content !== undefined);
                         // toBuild.push([handle, content[0] === "file" ? content[1] : "dir"])
                     }
+                    */
                     if (diffType === "removed") {
                         handle.drop();
                     }

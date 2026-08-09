@@ -35,6 +35,7 @@ async function buildDiffInternal(
         fsDiff.entries().filter(([_, diffType]) => diffType === "created").map(([name, _]) => name)
     );
 
+
     if (newFiles.size !== 0)
         buildInstance.getProcById().values().forEach(proc => {
             if (proc.processor.shouldRebuild(new NewFiles(newFiles, proc))) {
@@ -52,12 +53,15 @@ async function buildDiffInternal(
                     ?.values()
                     .forEach((handles) =>
                         handles.forEach((handle) => {
+                            /*
                             if (diffType === "changed") {
                                 const content =
                                     fsContent.get(filePath)?.content;
+
                                 assert(content !== undefined);
                                 // toBuild.push([handle, content[0] === "file" ? content[1] : "dir"])
                             }
+                            */
 
                             if (diffType === "removed") {
                                 handle.drop();

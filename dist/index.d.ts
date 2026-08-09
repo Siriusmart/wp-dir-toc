@@ -5,7 +5,6 @@ export type TocEntry = DirEntry | FileEntry;
 export type TocEntryOrdered = DirEntryOrdered | FileEntry;
 export interface DirEntry {
     type: "dir";
-    meta?: any;
     sourceAbs: string;
     sourceRel: string;
     children: Set<TocEntry>;
@@ -17,6 +16,7 @@ export interface FileEntry {
     sourceRel: string;
     outputAbs: string | null;
     outputRel: string | null;
+    frontMatter?: Record<string, any>;
 }
 export interface DirEntryOrdered {
     type: "dir";
