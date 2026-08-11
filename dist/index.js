@@ -86,10 +86,12 @@ export default class DirTocProcessor extends Processor {
             result: ordered
         };
     }
-    shouldRebuild(newFiles) {
+    shouldRebuild(newProcs) {
         const thisPath = this.filePath();
-        const patterns = ["**/*.md", "**/toc.yml", "*.md", "toc.yml"];
-        return patterns.some(pattern => newFiles.files({ include: path.join(thisPath, pattern) }).size);
+        const mdPatterns = ["**/*.md", "*.md"];
+        const yamlPatterns = ["**/toc.yml", "toc.yml"];
+        return mdPatterns.some(pattern => newProcs.files({ include: path.join(thisPath, pattern) }).has("unified"))
+            || yamlPatterns.some(pattern => newProcs.files({ include: path.join(thisPath, pattern) }).has("yaml-parse"));
     }
 }
 export function first(dir) {

@@ -1,6 +1,6 @@
 import Processor from "webpan/dist/types/processor.js";
-import NewFiles from "webpan/dist/types/newfiles.js";
 import { ProcessorOutputRaw } from "webpan/dist/types/processorStates.js";
+import NewProcs from "webpan/dist/types/newProcs.js";
 export type TocEntry = DirEntry | FileEntry;
 export type TocEntryOrdered = DirEntryOrdered | FileEntry;
 export interface DirEntry {
@@ -27,7 +27,7 @@ export interface DirEntryOrdered {
 }
 export default class DirTocProcessor extends Processor {
     build(content: Buffer | "dir"): Promise<ProcessorOutputRaw>;
-    shouldRebuild(newFiles: NewFiles): boolean;
+    shouldRebuild(newProcs: NewProcs): boolean;
 }
 export declare function first(dir: DirEntryOrdered): FileEntry | undefined;
 export declare function last(dir: DirEntryOrdered): FileEntry | undefined;

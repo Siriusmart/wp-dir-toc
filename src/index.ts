@@ -1,8 +1,8 @@
 import assert from "assert";
 import path from "path";
 import Processor, { FileNamedProcOne } from "webpan/dist/types/processor.js";
-import NewFiles from "webpan/dist/types/newfiles.js";
 import { ProcessorOutputRaw } from "webpan/dist/types/processorStates.js";
+import NewProcs from "webpan/dist/types/newProcs.js";
 
 export type TocEntry = DirEntry | FileEntry;
 export type TocEntryOrdered = DirEntryOrdered | FileEntry;
@@ -131,10 +131,12 @@ export default class DirTocProcessor extends Processor {
         }
     }
 
-    shouldRebuild(newFiles: NewFiles): boolean {
+    shouldRebuild(newProcs: NewProcs): boolean {
         const thisPath = this.filePath();
-        const patterns = ["**/*.md", "**/toc.yml", "*.md", "toc.yml"]
-        return patterns.some(pattern => newFiles.files({ include: path.join(thisPath, pattern) }).size)
+        const mdPatterns = ["**/*.md", "*.md"]
+        const yamlPatterns = ["**/toc.yml", "toc.yml"]
+        return mdPatterns.some(pattern => newProcs.files({ include: path.join(thisPath, pattern) }).has("unified"))
+            || yamlPatterns.some(pattern => newProcs.files({ include: path.join(thisPath, pattern) }).has("yaml-parse"));
     }
 }
 
