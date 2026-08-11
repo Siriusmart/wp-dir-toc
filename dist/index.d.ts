@@ -29,4 +29,8 @@ export default class DirTocProcessor extends Processor {
     build(content: Buffer | "dir"): Promise<ProcessorOutputRaw>;
     shouldRebuild(newFiles: NewFiles): boolean;
 }
+export declare function first(dir: DirEntryOrdered): FileEntry | undefined;
+export declare function last(dir: DirEntryOrdered): FileEntry | undefined;
+export declare function after(dir: DirEntryOrdered, entry: FileEntry): FileEntry | undefined;
+export declare function before(dir: DirEntryOrdered, entry: FileEntry): FileEntry | undefined;
 //# sourceMappingURL=index.d.ts.map
