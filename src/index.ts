@@ -1,6 +1,6 @@
 import assert from "assert";
 import path from "path";
-import Processor, { FileNamedProcOne } from "webpan/dist/types/processor.js";
+import Processor, { FileNamedProcOne, OnNewProcs } from "webpan/dist/types/processor.js";
 import { ProcessorOutputRaw } from "webpan/dist/types/processorStates.js";
 import NewProcs from "webpan/dist/types/newProcs.js";
 
@@ -131,12 +131,14 @@ export default class DirTocProcessor extends Processor {
         }
     }
 
-    shouldRebuild(newProcs: NewProcs): boolean {
+    onNewProcs(newProcs: NewProcs): OnNewProcs {
         const thisPath = this.filePath();
         const mdPatterns = ["**/*.md", "*.md"]
         const yamlPatterns = ["**/toc.yml", "toc.yml"]
-        return mdPatterns.some(pattern => newProcs.files({ include: path.join(thisPath, pattern) }).has("unified"))
+        const shouldRebuild = mdPatterns.some(pattern => newProcs.files({ include: path.join(thisPath, pattern) }).has("unified"))
             || yamlPatterns.some(pattern => newProcs.files({ include: path.join(thisPath, pattern) }).has("yaml-parse"));
+
+        return { shouldRebuild }
     }
 }
 
@@ -272,4 +274,18 @@ export function before(dir: DirEntryOrdered, entry: FileEntry): FileEntry | unde
     const res = beforeInternal(dir);
     if (res === "found entry" || res === undefined) return undefined;
     else return res;
+}
+
+export function getByPath(entry: TocEntryOrdered, absPath: string): TocEntryOrdered | undefined {
+    if (entry.type === "file") {
+        return absPath === entry.sourceAbs ? entry : undefined;
+    }
+
+    for (const child of entry.children) {
+        if (child.sourceAbs === absPath) return child;
+        if (absPath.startsWith(child.sourceAbs)) {
+            const res = getByPath(child, absPath);
+            if (res) return res;
+        }
+    }
 }

@@ -86,12 +86,13 @@ export default class DirTocProcessor extends Processor {
             result: ordered
         };
     }
-    shouldRebuild(newProcs) {
+    onNewProcs(newProcs) {
         const thisPath = this.filePath();
         const mdPatterns = ["**/*.md", "*.md"];
         const yamlPatterns = ["**/toc.yml", "toc.yml"];
-        return mdPatterns.some(pattern => newProcs.files({ include: path.join(thisPath, pattern) }).has("unified"))
+        const shouldRebuild = mdPatterns.some(pattern => newProcs.files({ include: path.join(thisPath, pattern) }).has("unified"))
             || yamlPatterns.some(pattern => newProcs.files({ include: path.join(thisPath, pattern) }).has("yaml-parse"));
+        return { shouldRebuild };
     }
 }
 export function first(dir) {
@@ -227,5 +228,19 @@ export function before(dir, entry) {
         return undefined;
     else
         return res;
+}
+export function getByPath(entry, absPath) {
+    if (entry.type === "file") {
+        return absPath === entry.sourceAbs ? entry : undefined;
+    }
+    for (const child of entry.children) {
+        if (child.sourceAbs === absPath)
+            return child;
+        if (absPath.startsWith(child.sourceAbs)) {
+            const res = getByPath(child, absPath);
+            if (res)
+                return res;
+        }
+    }
 }
 //# sourceMappingURL=index.js.map

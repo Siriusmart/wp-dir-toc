@@ -1,4 +1,4 @@
-import Processor from "webpan/dist/types/processor.js";
+import Processor, { OnNewProcs } from "webpan/dist/types/processor.js";
 import { ProcessorOutputRaw } from "webpan/dist/types/processorStates.js";
 import NewProcs from "webpan/dist/types/newProcs.js";
 export type TocEntry = DirEntry | FileEntry;
@@ -27,10 +27,11 @@ export interface DirEntryOrdered {
 }
 export default class DirTocProcessor extends Processor {
     build(content: Buffer | "dir"): Promise<ProcessorOutputRaw>;
-    shouldRebuild(newProcs: NewProcs): boolean;
+    onNewProcs(newProcs: NewProcs): OnNewProcs;
 }
 export declare function first(dir: DirEntryOrdered): FileEntry | undefined;
 export declare function last(dir: DirEntryOrdered): FileEntry | undefined;
 export declare function after(dir: DirEntryOrdered, entry: FileEntry): FileEntry | undefined;
 export declare function before(dir: DirEntryOrdered, entry: FileEntry): FileEntry | undefined;
+export declare function getByPath(entry: TocEntryOrdered, absPath: string): TocEntryOrdered | undefined;
 //# sourceMappingURL=index.d.ts.map

@@ -1,6 +1,6 @@
 {
     "name": "wp-dir-toc",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "Directory table of content index generator.",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -21,7 +21,7 @@
     },
     "homepage": "https://github.com/siriusmart/wp-dir-toc#readme",
     "devDependencies": {
-        "@types/node": "^24.4.0"
+        "@types/node": "^26.2.0"
     },
     "dependencies": {
         "webpan": "*"
